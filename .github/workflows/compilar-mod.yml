@@ -1,0 +1,40 @@
+name: Compilar mod NeoForge 1.21.11
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compilar:
+    name: Compilar y guardar JAR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compilar mod de NeoForge
+        run: bash ./gradlew clean build --no-daemon
+
+      - name: Guardar mod compilado para descargar
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod-neoforge-1.21.11
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+            !build/libs/*-javadoc.jar
+          if-no-files-found: error
+          retention-days: 30
