@@ -144,7 +144,7 @@ public class PoliceCuffsMod {
         }
         UUID officerId = ESCORTS.get(prisoner.getUUID());
         if (officerId == null) return;
-        ServerPlayer officer = prisoner.getServer().getPlayerList().getPlayer(officerId);
+        ServerPlayer officer = prisoner.level().getServer().getPlayerList().getPlayer(officerId);
         if (!isCuffed(prisoner) || officer == null || officer.isRemoved()
                 || officer.level() != prisoner.level() || officer.distanceToSqr(prisoner) > 100.0) {
             stopEscort(prisoner);
@@ -179,7 +179,7 @@ public class PoliceCuffsMod {
         }
         if (currentlyHeld != null) {
             ESCORTS.remove(currentlyHeld);
-            ServerPlayer captive = officer.getServer().getPlayerList().getPlayer(currentlyHeld);
+            ServerPlayer captive = officer.level().getServer().getPlayerList().getPlayer(currentlyHeld);
             if (captive != null) updateSpeed(captive);
             officer.sendSystemMessage(Component.literal("Has dejado de escoltar al detenido."));
             return;
