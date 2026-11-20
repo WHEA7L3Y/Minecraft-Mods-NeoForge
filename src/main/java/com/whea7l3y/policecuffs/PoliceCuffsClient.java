@@ -45,7 +45,11 @@ public final class PoliceCuffsClient {
         model.rightArm.yRot = -0.48F;
         model.leftArm.zRot = 0.12F;
         model.rightArm.zRot = -0.12F;
-        model.leftSleeve.copyFrom(model.leftArm);
-        model.rightSleeve.copyFrom(model.rightArm);
+        model.leftSleeve.xRot = model.leftArm.xRot;
+        model.leftSleeve.yRot = model.leftArm.yRot;
+        model.leftSleeve.zRot = model.leftArm.zRot;
+        model.rightSleeve.xRot = model.rightArm.xRot;
+        model.rightSleeve.yRot = model.rightArm.yRot;
+        model.rightSleeve.zRot = model.rightArm.zRot;
     }
 }
