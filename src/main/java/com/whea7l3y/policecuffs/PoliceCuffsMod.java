@@ -2,6 +2,11 @@ package com.whea7l3y.policecuffs;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,6 +43,7 @@ import java.util.function.Supplier;
 @Mod(PoliceCuffsMod.MODID)
 public class PoliceCuffsMod {
     public static final String MODID = "policecuffs";
+    private static final Logger LOGGER = LoggerFactory.getLogger("Police Cuffs");
     private static final Identifier SPEED_MODIFIER_ID = Identifier.fromNamespaceAndPath(MODID, "cuffed_speed");
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
@@ -73,6 +79,24 @@ public class PoliceCuffsMod {
 
     public static boolean isCuffed(Player player) {
         return player.getData(CUFFED);
+    }
+
+    // Diagnostic: verify recipes really loaded on the dedicated/integrated server,
+    // not merely included in the mod JAR.
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        var recipes = event.getServer().getRecipeManager();
+        var shapedId = ResourceKey.create(Registries.RECIPE,
+                Identifier.fromNamespaceAndPath(MODID, "handcuffs"));
+        var shapelessId = ResourceKey.create(Registries.RECIPE,
+                Identifier.fromNamespaceAndPath(MODID, "handcuffs_flexible"));
+        boolean shapedLoaded = recipes.byKey(shapedId).isPresent();
+        boolean shapelessLoaded = recipes.byKey(shapelessId).isPresent();
+        LOGGER.info("Comprobacion de recetas Police Cuffs: handcuffs={}, handcuffs_flexible={}",
+                shapedLoaded ? "OK" : "NO CARGADA", shapelessLoaded ? "OK" : "NO CARGADA");
+        if (!shapedLoaded || !shapelessLoaded) {
+            LOGGER.error("Falta una receta del mod. Revisa el archivo logs/latest.log del servidor.");
+        }
     }
 
     @SubscribeEvent

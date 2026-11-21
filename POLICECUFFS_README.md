@@ -1,18 +1,30 @@
-# Police Cuffs — NeoForge 1.21.11
+# Police Cuffs — mod NeoForge 1.21.11
+Version 0.1.2 — compilado para NeoForge 21.11.45.
 
-Mod para servidores de rol policial.
+## Recetas
+**Receta normal (mesa 3x3):**
+```
+I . I
+. C .
+I . I
+```
+I = lingote de hierro; C = cadena; . = hueco vacío.
 
-- Fabrica el objeto policecuffs:handcuffs con 4 lingotes de hierro y 1 cadena.
-- Clic derecho en un jugador con las esposas en la mano principal: esposar; repetir para quitar.
-- Detenido esposado: movimiento al 15 %; sin usar objetos, interactuar, minar o atacar.
-- Ponte detrás de un detenido a menos de 3 bloques y pulsa G: acompañarlo. G de nuevo: soltarlo sin quitar esposas.
-- El estado de esposado se sincroniza con los demás clientes y se guarda al desconectar.
-- Instalar el mod en servidor y en todos los clientes.
+**Receta alternativa:** cuatro lingotes de hierro y una cadena, en cualquier posición de una mesa 3x3.
 
-Primera versión: probar colisiones, movimiento, pose, muerte y compatibilidad con otros mods antes de usar en el mundo principal.
+La receta aparece en el libro del juego al obtener una cadena en el inventario (si ya tienes una, sácala y vuelve a recogerla).
 
-## Compatibilidad de la compilación 0.1.1
-- Compilado directamente contra NeoForge **21.11.45** (Minecraft **1.21.11**).
-- Sustituye el JAR 0.1.0; no instales las dos versiones simultáneamente.
-- El archivo debe estar en cliente y servidor NeoForge.
-- Si hay un fallo, adjunta `logs/latest.log` de la instancia donde ocurra.
+## JEI en Minecraft 1.21.11
+En 1.21.2+, instala JEI tanto en cliente como en servidor NeoForge. 
+JEI solo en cliente puede no mostrar recetas del servidor.
+
+## Diagnóstico
+Al arrancar el servidor, busca `Comprobacion de recetas Police Cuffs` en `logs/latest.log`.
+Debe indicar `handcuffs=OK, handcuffs_flexible=OK`.
+Si no aparece esta línea, el mod puede no estar cargando en el servidor.
+Para verificar el registro de la receta como operador:
+`/recipe give <jugador> policecuffs:handcuffs`
+
+## Instalación
+Reemplaza el JAR 0.1.1 por el JAR 0.1.2 tanto en servidor como cliente. No instales dos versiones juntas.
+El mod aún requiere pruebas en un mundo de prueba antes de usarlo en producción.

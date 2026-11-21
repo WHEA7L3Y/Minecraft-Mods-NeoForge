@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_chain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:chain"
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "policecuffs:handcuffs"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_chain",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "policecuffs:handcuffs",
+      "policecuffs:handcuffs_flexible"
+    ]
+  }
+}
