@@ -29,18 +29,31 @@ jobs:
           printf 'eula=true\n' > run/eula.txt
       - name: Comprobar las recetas con el servidor real de Minecraft
         run: |
-          set +e
-          timeout 220s bash ./gradlew runServer --no-daemon > recipe-test.log 2>&1
-          code=$?
-          set -e
-          echo "Salida del servidor (codigo $code):"
+          set -eu
+          timeout 180s bash ./gradlew runServer --no-daemon > recipe-test.log 2>&1 &
+          proceso=$!
+          trap 'kill "$proceso" 2>/dev/null || true' EXIT
+          for intento in $(seq 1 150); do
+            if grep -q 'Comprobacion de recetas Police Cuffs: handcuffs=OK, handcuffs_flexible=OK' recipe-test.log; then
+              echo 'El servidor de NeoForge ha cargado las DOS recetas correctamente.'
+              tail -n 30 recipe-test.log
+              exit 0
+            fi
+            if grep -q 'Comprobacion de recetas Police Cuffs:' recipe-test.log; then
+              echo 'El mod se ha cargado, pero una receta ha fallado.'
+              tail -n 120 recipe-test.log
+              exit 1
+            fi
+            if ! kill -0 "$proceso" 2>/dev/null; then
+              echo 'El servidor salio antes de verificar las recetas.'
+              tail -n 120 recipe-test.log
+              exit 1
+            fi
+            sleep 1
+          done
+          echo 'No se detecto el arranque del servidor en el plazo de prueba.'
           tail -n 120 recipe-test.log
-          if grep -q 'Comprobacion de recetas Police Cuffs: handcuffs=OK, handcuffs_flexible=OK' recipe-test.log; then
-            echo 'El servidor ha cargado las DOS recetas correctamente.'
-          else
-            echo 'ERROR: no se ha comprobado la carga de recetas del servidor.'
-            exit 1
-          fi
+          exit 1
       - name: Conservar el registro de prueba
         if: always()
         uses: actions/upload-artifact@v4
