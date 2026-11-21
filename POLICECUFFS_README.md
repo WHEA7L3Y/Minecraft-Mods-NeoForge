@@ -10,3 +10,9 @@ Mod para servidores de rol policial.
 - Instalar el mod en servidor y en todos los clientes.
 
 Primera versión: probar colisiones, movimiento, pose, muerte y compatibilidad con otros mods antes de usar en el mundo principal.
+
+## Compatibilidad de la compilación 0.1.1
+- Compilado directamente contra NeoForge **21.11.45** (Minecraft **1.21.11**).
+- Sustituye el JAR 0.1.0; no instales las dos versiones simultáneamente.
+- El archivo debe estar en cliente y servidor NeoForge.
+- Si hay un fallo, adjunta `logs/latest.log` de la instancia donde ocurra.

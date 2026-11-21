@@ -40,7 +40,7 @@ displayName="${mod_name}" #mandatory
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-Example mod description.
+Esposas policiales para servidores de Minecraft 1.21.11: detenciones, movimiento limitado y escolta con la tecla G.
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
