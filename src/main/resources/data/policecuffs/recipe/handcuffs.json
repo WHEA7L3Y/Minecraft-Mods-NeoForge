@@ -1,1 +1,17 @@
-{"type":"minecraft:crafting_shaped","category":"equipment","pattern":["I I"," C ","I I"],"key":{"I":"minecraft:iron_ingot","C":"minecraft:chain"},"result":{"id":"policecuffs:handcuffs","count":1}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "I I",
+    " C ",
+    "I I"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:iron_chain"
+  },
+  "result": {
+    "id": "policecuffs:handcuffs",
+    "count": 1
+  }
+}

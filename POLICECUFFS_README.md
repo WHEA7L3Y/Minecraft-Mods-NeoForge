@@ -8,11 +8,11 @@ I . I
 . C .
 I . I
 ```
-I = lingote de hierro; C = cadena; . = hueco vacío.
+I = lingote de hierro; C = cadena de hierro; . = hueco vacío.
 
-**Receta alternativa:** cuatro lingotes de hierro y una cadena, en cualquier posición de una mesa 3x3.
+**Receta alternativa:** cuatro lingotes de hierro y una cadena de hierro, en cualquier posición de una mesa 3x3.
 
-La receta aparece en el libro del juego al obtener una cadena en el inventario (si ya tienes una, sácala y vuelve a recogerla).
+La receta aparece en el libro del juego al obtener una cadena de hierro en el inventario (si ya tienes una, sácala y vuelve a recogerla).
 
 ## JEI en Minecraft 1.21.11
 En 1.21.2+, instala JEI tanto en cliente como en servidor NeoForge. 
