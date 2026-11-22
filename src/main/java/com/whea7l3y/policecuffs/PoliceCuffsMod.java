@@ -45,6 +45,12 @@ public class PoliceCuffsMod {
     public static final String MODID = "policecuffs";
     private static final Logger LOGGER = LoggerFactory.getLogger("Police Cuffs");
     private static final Identifier SPEED_MODIFIER_ID = Identifier.fromNamespaceAndPath(MODID, "cuffed_speed");
+    // A sync-only state: the prisoner knows who is escorting them, so their own
+    // client can predict smooth movement instead of waiting for teleport packets.
+    public static final UUID NO_ESCORT = new UUID(0L, 0L);
+    public static final double ESCORT_DISTANCE = 1.5;
+    public static final double ESCORT_MAX_STEP = 0.45; // blocks per tick (9 m/s)
+
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     public static final DeferredItem<Item> HANDCUFFS = ITEMS.registerSimpleItem("handcuffs", properties -> properties.stacksTo(1));
@@ -54,6 +60,10 @@ public class PoliceCuffsMod {
             "cuffed", () -> AttachmentType.builder(() -> false)
                     .serialize(Codec.BOOL.fieldOf("cuffed"))
                     .sync(ByteBufCodecs.BOOL)
+                    .build());
+    public static final Supplier<AttachmentType<UUID>> ESCORT_OFFICER = ATTACHMENT_TYPES.register(
+            "escort_officer", () -> AttachmentType.builder(() -> NO_ESCORT)
+                    .sync(ByteBufCodecs.UUID)
                     .build());
 
     // Prisoner UUID -> officer UUID. Escort state does not persist across server restarts.
@@ -169,26 +179,57 @@ public class PoliceCuffsMod {
         UUID officerId = ESCORTS.get(prisoner.getUUID());
         if (officerId == null) return;
         ServerPlayer officer = prisoner.level().getServer().getPlayerList().getPlayer(officerId);
-        if (!isCuffed(prisoner) || officer == null || officer.isRemoved()
-                || officer.level() != prisoner.level() || officer.distanceToSqr(prisoner) > 100.0) {
+        if (!isCuffed(prisoner) || !prisoner.isAlive() || officer == null || !officer.isAlive()
+                || officer.isRemoved() || officer.level() != prisoner.level()
+                || officer.distanceToSqr(prisoner) > 100.0) {
             stopEscort(prisoner);
             return;
         }
-        Vec3 look = officer.getLookAngle();
-        Vec3 flat = new Vec3(look.x, 0, look.z);
-        if (flat.lengthSqr() < 0.01) flat = new Vec3(0, 0, 1);
-        Vec3 destination = officer.position().subtract(flat.normalize().scale(1.25));
-        if (prisoner.position().distanceToSqr(destination) > 0.05) {
-            prisoner.connection.teleport(destination.x, destination.y, destination.z,
-                    prisoner.getYRot(), prisoner.getXRot());
+
+        // Move a limited distance each tick, WITH vanilla collision handling.
+        // Calling connection.teleport() every tick floods the client with teleport
+        // handshakes and prevents the detainee's visible movement from updating.
+        Vec3 destination = escortPosition(officer);
+        Vec3 delta = escortStep(prisoner.position(), destination);
+        if (delta.lengthSqr() > 0.0) {
+            prisoner.move(net.minecraft.world.entity.MoverType.PLAYER, delta);
         }
         prisoner.setDeltaMovement(Vec3.ZERO);
+        prisoner.setSprinting(false);
     }
 
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         UUID left = event.getEntity().getUUID();
-        ESCORTS.entrySet().removeIf(entry -> entry.getKey().equals(left) || entry.getValue().equals(left));
+        var detainees = ESCORTS.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(left) || entry.getValue().equals(left))
+                .map(Map.Entry::getKey).toList();
+        for (UUID id : detainees) {
+            ServerPlayer prisoner = event.getEntity().level().getServer().getPlayerList().getPlayer(id);
+            if (prisoner != null) stopEscort(prisoner);
+            else ESCORTS.remove(id);
+        }
+    }
+
+    /** The detainee is in FRONT of the officer, at the same ground-level height. */
+    public static Vec3 escortPosition(Player officer) {
+        Vec3 direction = officer.getLookAngle();
+        Vec3 flat = new Vec3(direction.x, 0.0, direction.z);
+        if (flat.lengthSqr() < 1.0E-5) {
+            double radians = Math.toRadians(officer.getYRot());
+            flat = new Vec3(-Math.sin(radians), 0.0, Math.cos(radians));
+        }
+        return officer.position().add(flat.normalize().scale(ESCORT_DISTANCE));
+    }
+
+    /** Smooth, bounded following motion; never jump immediately to the target. */
+    public static Vec3 escortStep(Vec3 current, Vec3 target) {
+        Vec3 delta = target.subtract(current);
+        double lengthSq = delta.lengthSqr();
+        if (lengthSq < 0.0004) return Vec3.ZERO;
+        return lengthSq > ESCORT_MAX_STEP * ESCORT_MAX_STEP
+                ? delta.normalize().scale(ESCORT_MAX_STEP)
+                : delta;
     }
 
     public static void toggleEscort(ServerPlayer officer) {
@@ -202,9 +243,9 @@ public class PoliceCuffsMod {
             }
         }
         if (currentlyHeld != null) {
-            ESCORTS.remove(currentlyHeld);
             ServerPlayer captive = officer.level().getServer().getPlayerList().getPlayer(currentlyHeld);
-            if (captive != null) updateSpeed(captive);
+            if (captive != null) stopEscort(captive);
+            else ESCORTS.remove(currentlyHeld);
             officer.sendSystemMessage(Component.literal("Has dejado de escoltar al detenido."));
             return;
         }
@@ -225,13 +266,18 @@ public class PoliceCuffsMod {
             return;
         }
         ESCORTS.put(selected.getUUID(), officerId);
+        selected.setData(ESCORT_OFFICER, officerId); // synchronize to captive's client
         updateSpeed(selected);
         officer.sendSystemMessage(Component.literal("Escoltando a " + selected.getName().getString() + ". Pulsa G para soltarlo."));
         selected.sendSystemMessage(Component.literal("Un policía te está escoltando."));
     }
 
     private static void stopEscort(ServerPlayer prisoner) {
-        if (ESCORTS.remove(prisoner.getUUID()) != null) updateSpeed(prisoner);
+        if (ESCORTS.remove(prisoner.getUUID()) != null) {
+            prisoner.setData(ESCORT_OFFICER, NO_ESCORT);
+            prisoner.setDeltaMovement(Vec3.ZERO);
+            updateSpeed(prisoner);
+        }
     }
 
     private static void updateSpeed(ServerPlayer player) {

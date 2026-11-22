@@ -28,3 +28,12 @@ Para verificar el registro de la receta como operador:
 ## Instalación
 Reemplaza el JAR 0.1.1 por el JAR 0.1.2 tanto en servidor como cliente. No instales dos versiones juntas.
 El mod aún requiere pruebas en un mundo de prueba antes de usarlo en producción.
+
+## Corrección de escolta (v0.1.4)
+- El detenido se mantiene **delante del policía**, aproximadamente 1,5 bloques.
+- En lugar de teletransportarlo repetidamente, el servidor lo mueve con colisiones normales.
+- El cliente del detenido también predice el seguimiento usando un estado sincronizado.
+- G una vez: comenzar escolta; G otra vez: soltar al detenido **donde está**, sin teletransportaciones.
+- La velocidad normal de las esposas sigue limitada y el detenido no puede interactuar.
+- Es obligatorio instalar la **misma versión** del mod en el servidor y en todos los clientes.
+- La compilación y las pruebas automáticas de recetas no sustituyen una prueba multijugador del movimiento.

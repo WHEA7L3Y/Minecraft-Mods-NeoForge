@@ -5,6 +5,9 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.phys.Vec3;
+import java.util.UUID;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,9 +30,34 @@ public final class PoliceCuffsClient {
 
     @SubscribeEvent
     public static void clientTick(ClientTickEvent.Post event) {
+        Minecraft minecraft = Minecraft.getInstance();
         while (ESCORT_KEY.consumeClick()) {
-            if (Minecraft.getInstance().player != null) ClientPacketDistributor.sendToServer(new EscortRequest(1));
+            if (minecraft.player != null) ClientPacketDistributor.sendToServer(new EscortRequest(1));
         }
+
+        // The local detainee is normally authoritative for their own movement.
+        // Predict escort motion on their client too, so it is visible in real time.
+        if (minecraft.level == null || minecraft.player == null) return;
+        var prisoner = minecraft.player;
+        UUID officerId = prisoner.getData(PoliceCuffsMod.ESCORT_OFFICER);
+        if (!PoliceCuffsMod.isCuffed(prisoner) || PoliceCuffsMod.NO_ESCORT.equals(officerId)) return;
+
+        Player officer = null;
+        for (Player candidate : minecraft.level.players()) {
+            if (candidate.getUUID().equals(officerId)) {
+                officer = candidate;
+                break;
+            }
+        }
+        if (officer == null || officer.level() != prisoner.level()) return;
+
+        Vec3 destination = PoliceCuffsMod.escortPosition(officer);
+        Vec3 delta = PoliceCuffsMod.escortStep(prisoner.position(), destination);
+        if (delta.lengthSqr() > 0.0) {
+            prisoner.move(MoverType.PLAYER, delta);
+        }
+        prisoner.setDeltaMovement(Vec3.ZERO);
+        prisoner.setSprinting(false);
     }
 
     @SubscribeEvent
