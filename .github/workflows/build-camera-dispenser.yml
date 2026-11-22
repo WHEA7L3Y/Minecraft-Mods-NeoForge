@@ -16,6 +16,8 @@ jobs:
         run: |
           base64 -d camera-dispenser-addon-sources.tar.xz.base64 | tar -xJf -
           test -f camera-dispenser-addon/build.gradle
+          sed -i "s/localRuntime 'curse.maven:/runtimeOnly 'curse.maven:/" camera-dispenser-addon/build.gradle
+          sed -i '/configurations { runtimeClasspath.extendsFrom(localRuntime) }/d' camera-dispenser-addon/build.gradle
       - name: Java 21
         uses: actions/setup-java@v4
         with:
