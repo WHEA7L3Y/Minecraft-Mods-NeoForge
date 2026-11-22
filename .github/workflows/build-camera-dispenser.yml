@@ -1,0 +1,33 @@
+name: Compilar Camera Dispenser Addon
+
+on:
+  push:
+    branches:
+      - camera-dispenser-addon-1.21.11
+  workflow_dispatch:
+
+jobs:
+  build-camera-addon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Unpack source
+        run: |
+          base64 -d camera-dispenser-addon-sources.tar.xz.base64 | tar -xJf -
+          test -f camera-dispenser-addon/build.gradle
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Compile Minecraft addon
+        run: ./gradlew -p camera-dispenser-addon build --stacktrace --no-configuration-cache
+      - name: Upload mod jar
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Camera-Dispenser-Addon-1.21.11
+          path: camera-dispenser-addon/build/libs/*.jar
