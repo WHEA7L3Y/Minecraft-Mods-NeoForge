@@ -3,6 +3,7 @@ package com.whea7l3y.policecuffs;
 import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ public class PoliceCuffsMod {
                     .build());
     public static final Supplier<AttachmentType<UUID>> ESCORT_OFFICER = ATTACHMENT_TYPES.register(
             "escort_officer", () -> AttachmentType.builder(() -> NO_ESCORT)
-                    .sync(ByteBufCodecs.UUID)
+                    .sync(UUIDUtil.STREAM_CODEC)
                     .build());
 
     // Prisoner UUID -> officer UUID. Escort state does not persist across server restarts.
